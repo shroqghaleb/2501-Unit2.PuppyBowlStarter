@@ -336,10 +336,12 @@ const addNewPuppy = async (newPuppy) => {
       },
       body: JSON.stringify(newPuppy)
     });
+    
     const data = await response.json();
-    return data.data.player;
+    return data.data.newPlayer;
   } catch (error) {
-    console.log("Error adding puppy:", error);
+    console.error("Error adding puppy:", error);
+    throw error;
   }
 };
 
@@ -356,7 +358,10 @@ const removePuppy = async (puppyId) => {
 };
 
 
-window.removePuppy = removePuppy;
+if (typeof window !== 'undefined') {
+  window.removePuppy = removePuppy;
+  window.init = init;
+}
 
 /**THERE IS NO NEED TO EDIT THE CODE BELOW =) **/
 
@@ -368,6 +373,9 @@ if (typeof window === "undefined") {
     fetchAllPlayers,
     fetchSinglePlayer,
     addNewPlayer,
+    fetchAllPuppies,
+    fetchSinglePuppy,
+    addNewPuppy
   };
 } else {
   init();

@@ -1,52 +1,74 @@
 const {
-  fetchAllPlayers,
-  fetchSinglePlayer,
-  addNewPlayer,
-} = require("./script"); 
+  fetchAllPuppies,
+  fetchSinglePuppy,
+  addNewPuppy
+} = require("./script");
 
-describe("fetchAllPlayers", () => {
-  // Make the API call once before all the tests run
-  let players;
+describe("fetchAllPuppies", () => {
+  let puppies;
+  
   beforeAll(async () => {
-    players = await fetchAllPlayers();
+    puppies = await fetchAllPuppies();
   });
 
   test("returns an array", async () => {
-    expect(Array.isArray(players)).toBe(true);
+    expect(Array.isArray(puppies)).toBe(true);
   });
 
-  test("returns players with name and id", async () => {
-    players.forEach((player) => {
-      expect(player).toHaveProperty("name");
-      expect(player).toHaveProperty("id");
+  test("returns puppies with name and id", async () => {
+    puppies.forEach((puppy) => {
+      expect(puppy).toHaveProperty("name");
+      expect(puppy).toHaveProperty("id");
     });
   });
 });
 
-describe("fetchSinglePlayer", () => {
-  let player;
-  const testPlayerId = 1; // Use a valid player ID from your API
+describe("fetchSinglePuppy", () => {
+  let puppy;
+  let testPuppyId;
 
   beforeAll(async () => {
-    player = await fetchSinglePlayer(testPlayerId);
+    // Get a valid puppy ID first
+    const puppies = await fetchAllPuppies();
+    testPuppyId = puppies[0].id; // Use the first puppy's ID
+    puppy = await fetchSinglePuppy(testPuppyId);
   });
 
-  test("returns a single player object", async () => {
-    expect(typeof player).toBe("object");
-    expect(Array.isArray(player)).toBe(false);
+  test("returns a single puppy object", async () => {
+    expect(typeof puppy).toBe("object");
+    expect(Array.isArray(puppy)).toBe(false);
   });
 
-  test("returns player with expected properties", async () => {
-    expect(player).toHaveProperty("id");
-    expect(player).toHaveProperty("name");
-    expect(player).toHaveProperty("breed");
-    expect(player).toHaveProperty("status");
+  test("returns puppy with expected properties", async () => {
+    expect(puppy).toHaveProperty("id");
+    expect(puppy).toHaveProperty("name");
+    expect(puppy).toHaveProperty("breed");
+    expect(puppy).toHaveProperty("status");
   });
 
-  test("returns player with correct id", async () => {
-    expect(player.id).toBe(testPlayerId);
+  test("returns puppy with correct id", async () => {
+    expect(puppy.id).toBe(testPuppyId);
   });
 });
 
-// TODO: Tests for `addNewPlayer`
+describe("addNewPuppy", () => {
+  test("adds a new puppy", async () => {
+    const newPuppy = {
+      name: "Test Puppy",
+      breed: "Test Breed",
+      imageUrl: "https://example.com/puppy.jpg"
+    };
+
+    const addedPuppy = await addNewPuppy(newPuppy);
+    
+    // First check if we got a response
+    expect(addedPuppy).toBeDefined();
+    
+    // Then check the specific properties
+    expect(addedPuppy).toHaveProperty("id");
+    expect(addedPuppy.name).toBe(newPuppy.name);
+    expect(addedPuppy.breed).toBe(newPuppy.breed);
+    expect(addedPuppy.status).toBe("bench"); // Default status
+  });
+});
 
