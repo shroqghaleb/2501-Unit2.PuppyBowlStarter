@@ -27,10 +27,10 @@ const fetchAllPlayers = async () => {
     const allPlayers = json.data.players;
     console.log("All players:", allPlayers);
     
-    return allPlayers; // Return the players array instead of calling render directly
+    return allPlayers; 
   } catch (error) {
     console.error("Error fetching players:", error);
-    return []; // Return empty array if there's an error
+    return []; 
   }
 };
 
@@ -67,14 +67,14 @@ const fetchSinglePlayer = async (playerId) => {
  */
 
 const addNewPlayer = async (newPlayer) => {
-  // Check if newPlayer has required fields
+  
   if (!newPlayer.name || !newPlayer.breed) {
     console.log("Please fill in all required fields");
     return;
   }
 
   try {
-    // Make the API call
+   
     const response = await fetch("https://fsa-puppy-bowl.herokuapp.com/api/2803-PUPPIES/players", {
       method: "POST",
       headers: {
@@ -83,16 +83,16 @@ const addNewPlayer = async (newPlayer) => {
       body: JSON.stringify(newPlayer)
     });
 
-    // Check if the response is ok
+    
     if (!response.ok) {
       throw new Error("Failed to add player");
     }
 
-    // Get the data
+    
     const data = await response.json();
     console.log("New player added:", data);
 
-    // Refresh the page to show new player
+    
     await render();
 
   } catch (error) {
@@ -126,12 +126,12 @@ const removePlayer = async (playerId) => {
     const data = await response.json();
     console.log("Player removed:", data);
 
-    // Refresh the view to update the player list
+    
     await render();
 
   } catch (error) {
     console.error("Error removing player:", error);
-    // Optionally show error to user
+   
     const app = document.querySelector("#app");
     app.innerHTML = `<div class="error-message">Error removing player: ${error.message}</div>`;
   }
@@ -241,7 +241,7 @@ const renderSinglePlayer = (player) => {
   `;
 };
 
-// Fetch all puppies
+
 const fetchAllPuppies = async () => {
   try {
     const response = await fetch(`${API_URL}/players`);
@@ -254,7 +254,7 @@ const fetchAllPuppies = async () => {
   }
 };
 
-// Fetch single puppy
+
 const fetchSinglePuppy = async (puppyId) => {
   try {
     const response = await fetch(`${API_URL}/players/${puppyId}`);
@@ -267,7 +267,7 @@ const fetchSinglePuppy = async (puppyId) => {
   }
 };
 
-// Render single puppy details
+
 const renderSinglePuppy = (puppy) => {
   if (!puppy) {
     return `<div class="error-message">Puppy not found</div>`;
@@ -293,18 +293,15 @@ const renderSinglePuppy = (puppy) => {
   `;
 };
 
-/**
- * Initializes the app by calling render
- * HOWEVER....
- */
+
 const init = async () => {
-  // Add event listener for hash changes
+
   window.addEventListener("hashchange", render);
   
-  // Add event listener for form submission
+
   const newPuppyForm = document.querySelector("#newPuppyForm");
   
-  if (newPuppyForm) {  // Add this check
+  if (newPuppyForm) {  
     newPuppyForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       
@@ -317,20 +314,19 @@ const init = async () => {
       try {
         await addNewPuppy(newPuppy);
         event.target.reset();
-        await render(); // Refresh the list after adding
+        await render(); 
       } catch (error) {
         console.error("Error adding puppy:", error);
       }
     });
   } else {
-    console.error("Form not found!"); // Debug message
+    console.error("Form not found!"); 
   }
 
-  // Initial render
   await render();
 };
 
-// Make sure addNewPuppy function is defined
+
 const addNewPuppy = async (newPuppy) => {
   try {
     const response = await fetch(`${API_URL}/players`, {
@@ -347,19 +343,19 @@ const addNewPuppy = async (newPuppy) => {
   }
 };
 
-// Remove puppy function
+
 const removePuppy = async (puppyId) => {
   try {
     await fetch(`${API_URL}/players/${puppyId}`, {
       method: "DELETE"
     });
-    render(); // Refresh the page
+    render(); 
   } catch (error) {
     console.log("Error removing puppy:", error);
   }
 };
 
-// Make removePuppy available globally
+
 window.removePuppy = removePuppy;
 
 /**THERE IS NO NEED TO EDIT THE CODE BELOW =) **/
