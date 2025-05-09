@@ -7,26 +7,44 @@
 
 ////////////////////////////
 
-
+// Global variables
+const API_URL = "https://fsa-puppy-bowl.herokuapp.com/api/2501-FTB-ET-WEB-AM";
 
 /**
  * Fetches all players from the API.
  * This function should not be doing any rendering
  * @returns {Object[]} the array of player objects
  */
-const fetchAllPlayers = async () => {
-  //TODO
 
+const fetchAllPlayers = async () => {
+  try {
+    const response = await fetch("https://fsa-puppy-bowl.herokuapp.com/api/2501-FTB-ET-WEB-AM/players");
+    console.log("Response:", response);
+    
+    const json = await response.json();
+    console.log("JSON data:", json);
+    
+    const allPlayers = json.data.players;
+    console.log("All players:", allPlayers);
+    
+    return allPlayers; // Return the players array instead of calling render directly
+  } catch (error) {
+    console.error("Error fetching players:", error);
+    return []; // Return empty array if there's an error
+  }
 };
 
-/**
+fetchAllPlayers();
+/*
  * Fetches a single player from the API.
  * This function should not be doing any rendering
  * @param {number} playerId
  * @returns {Object} the player object
  */
 const fetchSinglePlayer = async (playerId) => {
-  //TODO
+  const response = await fetch(`https://fsa-puppy-bowl.herokuapp.com/api/2803-PUPPIES/players/${playerId}`);
+  const json = await response.json();
+  return json.data.player;
 };
 
 /**
@@ -49,7 +67,37 @@ const fetchSinglePlayer = async (playerId) => {
  */
 
 const addNewPlayer = async (newPlayer) => {
-  //TODO
+  // Check if newPlayer has required fields
+  if (!newPlayer.name || !newPlayer.breed) {
+    console.log("Please fill in all required fields");
+    return;
+  }
+
+  try {
+    // Make the API call
+    const response = await fetch("https://fsa-puppy-bowl.herokuapp.com/api/2803-PUPPIES/players", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newPlayer)
+    });
+
+    // Check if the response is ok
+    if (!response.ok) {
+      throw new Error("Failed to add player");
+    }
+
+    // Get the data
+    const data = await response.json();
+    console.log("New player added:", data);
+
+    // Refresh the page to show new player
+    await render();
+
+  } catch (error) {
+    console.log("Error adding player:", error);
+  }
 };
 
 /**
@@ -67,8 +115,26 @@ const addNewPlayer = async (newPlayer) => {
  */
 
 const removePlayer = async (playerId) => {
-  //TODO
+  try {
+    const response = await fetch(`https://fsa-puppy-bowl.herokuapp.com/api/2803-PUPPIES/players/${playerId}`, {
+      method: "DELETE",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
+    const data = await response.json();
+    console.log("Player removed:", data);
+
+    // Refresh the view to update the player list
+    await render();
+
+  } catch (error) {
+    console.error("Error removing player:", error);
+    // Optionally show error to user
+    const app = document.querySelector("#app");
+    app.innerHTML = `<div class="error-message">Error removing player: ${error.message}</div>`;
+  }
 };
 
 /**
@@ -89,10 +155,49 @@ const removePlayer = async (playerId) => {
  *    from the database and our current view without having to refresh
  *
  */
-const render = () => {
-  // TODO
+const render = async () => {
+  const app = document.querySelector("#app");
+  app.innerHTML = "<div class='loading'>Loading...</div>";
 
-  
+  try {
+    const hash = window.location.hash.slice(1);
+    console.log("Current hash:", hash);
+
+    if (hash.startsWith("puppy-")) {
+      const puppyId = parseInt(hash.split("-")[1]);
+      console.log("Fetching puppy with ID:", puppyId);
+      const puppy = await fetchSinglePuppy(puppyId);
+      app.innerHTML = renderSinglePuppy(puppy);
+      return;
+    }
+
+    const puppies = await fetchAllPuppies();
+    console.log("All puppies:", puppies);
+
+    const puppyList = puppies.map((puppy) => {
+      return `
+        <div class="puppy-card">
+          <h3>${puppy.name}</h3>
+          <p>ID: ${puppy.id}</p>
+          <img src="${puppy.imageUrl}" alt="${puppy.name}" />
+          <div class="puppy-actions">
+            <button class="view-details" onclick="window.location.hash='puppy-${puppy.id}'">View Details</button>
+            <button class="remove-puppy" onclick="removePuppy(${puppy.id})">Remove Puppy</button>
+          </div>
+        </div>
+      `;
+    });
+
+    app.innerHTML = `
+      <div class="puppies-container">
+        ${puppyList.join("")}
+      </div>
+    `;
+
+  } catch (error) {
+    console.error("Error rendering:", error);
+    app.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+  }
 };
 
 /**
@@ -110,21 +215,152 @@ const render = () => {
  * @param {Object} player an object representing a single player
  */
 const renderSinglePlayer = (player) => {
-  // TODO
+  if (!player) {
+    const app = document.querySelector("#app");
+    app.innerHTML = "<div class='error-message'>Player not found</div>";
+    return;
+  }
 
+  return `
+    <div class="player-details">
+      <button class="back-button" onclick="window.location.hash=''">Back to All Players</button>
+      
+      <div class="player-info">
+        <h2>${player.name}</h2>
+        <img src="${player.imageUrl}" alt="${player.name}" />
+        
+        <div class="player-details-info">
+          <p><strong>ID:</strong> ${player.id}</p>
+          <p><strong>Breed:</strong> ${player.breed}</p>
+          <p><strong>Status:</strong> ${player.status || 'Unassigned'}</p>
+        </div>
+
+        <button class="remove-player" onclick="removePlayer(${player.id})">Remove Player</button>
+      </div>
+    </div>
+  `;
 };
 
+// Fetch all puppies
+const fetchAllPuppies = async () => {
+  try {
+    const response = await fetch(`${API_URL}/players`);
+    const json = await response.json();
+    console.log("All puppies:", json.data.players);
+    return json.data.players;
+  } catch (error) {
+    console.error('Error fetching puppies:', error);
+    return [];
+  }
+};
+
+// Fetch single puppy
+const fetchSinglePuppy = async (puppyId) => {
+  try {
+    const response = await fetch(`${API_URL}/players/${puppyId}`);
+    const json = await response.json();
+    console.log("Single puppy:", json.data.player);
+    return json.data.player;
+  } catch (error) {
+    console.error('Error fetching single puppy:', error);
+    return null;
+  }
+};
+
+// Render single puppy details
+const renderSinglePuppy = (puppy) => {
+  if (!puppy) {
+    return `<div class="error-message">Puppy not found</div>`;
+  }
+
+  return `
+    <div class="puppy-details">
+      <button class="back-button" onclick="window.location.hash=''">Back to All Puppies</button>
+      
+      <div class="puppy-info">
+        <h2>${puppy.name}</h2>
+        <img src="${puppy.imageUrl}" alt="${puppy.name}" />
+        
+        <div class="puppy-details-info">
+          <p><strong>ID:</strong> ${puppy.id}</p>
+          <p><strong>Breed:</strong> ${puppy.breed}</p>
+          <p><strong>Status:</strong> ${puppy.status || 'Unassigned'}</p>
+        </div>
+
+        <button class="remove-puppy" onclick="removePuppy(${puppy.id})">Remove Puppy</button>
+      </div>
+    </div>
+  `;
+};
 
 /**
  * Initializes the app by calling render
  * HOWEVER....
  */
 const init = async () => {
-  //Before we render, what do we always need...?
+  // Add event listener for hash changes
+  window.addEventListener("hashchange", render);
+  
+  // Add event listener for form submission
+  const newPuppyForm = document.querySelector("#newPuppyForm");
+  
+  if (newPuppyForm) {  // Add this check
+    newPuppyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      
+      const newPuppy = {
+        name: event.target.puppyName.value,
+        breed: event.target.puppyBreed.value,
+        imageUrl: event.target.puppyImage.value
+      };
 
-  render();
+      try {
+        await addNewPuppy(newPuppy);
+        event.target.reset();
+        await render(); // Refresh the list after adding
+      } catch (error) {
+        console.error("Error adding puppy:", error);
+      }
+    });
+  } else {
+    console.error("Form not found!"); // Debug message
+  }
 
+  // Initial render
+  await render();
 };
+
+// Make sure addNewPuppy function is defined
+const addNewPuppy = async (newPuppy) => {
+  try {
+    const response = await fetch(`${API_URL}/players`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newPuppy)
+    });
+    const data = await response.json();
+    return data.data.player;
+  } catch (error) {
+    console.log("Error adding puppy:", error);
+  }
+};
+
+// Remove puppy function
+const removePuppy = async (puppyId) => {
+  try {
+    await fetch(`${API_URL}/players/${puppyId}`, {
+      method: "DELETE"
+    });
+    render(); // Refresh the page
+  } catch (error) {
+    console.log("Error removing puppy:", error);
+  }
+};
+
+// Make removePuppy available globally
+window.removePuppy = removePuppy;
 
 /**THERE IS NO NEED TO EDIT THE CODE BELOW =) **/
 

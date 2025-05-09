@@ -6,11 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
     <script src="./script.js" defer></script>
-    <title>PuppyBowl</title>
+    <title>Puppy Bowl</title>
   </head>
   <body>
-    <h1>Welcome to Puppy Bowl!</h1>
-    <!--Don't be afraid to add stuff to your HTML as needed!-->
-    
+    <header>
+      <h1>Puppy Bowl</h1>
+      <p class="subtitle">Welcome to the Puppy Bowl Roster!</p>
+    </header>
+
+    <main>
+      <!-- Add new puppy form -->
+      <section class="add-puppy">
+        <h2>Add New Puppy</h2>
+        <form id="newPuppyForm">
+          <div>
+            <label for="puppyName">Name:</label>
+            <input type="text" id="puppyName" name="puppyName" required>
+          </div>
+
+          <div>
+            <label for="puppyBreed">Breed:</label>
+            <input type="text" id="puppyBreed" name="puppyBreed" required>
+          </div>
+
+          <div>
+            <label for="puppyImage">Image URL:</label>
+            <input type="url" id="puppyImage" name="puppyImage" required>
+          </div>
+
+          <button type="submit">Add Puppy</button>
+        </form>
+      </section>
+
+      <!-- Show puppies -->
+      <section class="puppies">
+        <h2>Puppy Bowl Roster</h2>
+        <div id="app"></div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
   </body>
 </html>
